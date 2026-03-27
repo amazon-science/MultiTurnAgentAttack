@@ -1,2 +1,10 @@
 .DS_Store
 .idea/
+*.pyc
+/output
+/data
+/src/toolshield
+*.out
+Baseline/configs.yaml
+/logs
+STAC_eval/configs.yaml

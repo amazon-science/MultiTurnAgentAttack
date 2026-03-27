@@ -278,13 +278,25 @@ class Agent():
                     elif 'toolUse' in this_completion_raw:
                         self.running[agent_idx] = this_completion_raw['toolUse']['name'] != "end_task"
                         tool_name = re.sub(r'[^a-zA-Z0-9_-]', '', this_completion_raw['toolUse']['name'])
-                        completion = {'type': 'tool', 
-                                    'tool_call_id': this_completion_raw['toolUse']['toolUseId'], 
+                        completion = {'type': 'tool',
+                                    'tool_call_id': this_completion_raw['toolUse']['toolUseId'],
                                     'tool_name': tool_name,
                                     'arguments': this_completion_raw['toolUse']['input']}
-                        
-                        env_messages = self.envs[agent_idx].step(completion)
-                        all_env_messages.extend(deepcopy(env_messages))
+
+                        try:
+                            env_messages = self.envs[agent_idx].step(completion)
+                            all_env_messages.extend(deepcopy(env_messages))
+                        except Exception as e:
+                            logging.warning(f"Environment step failed for agent {agent_idx}: {e}")
+                            self.running[agent_idx] = False
+                            all_env_messages.append({
+                                'role': 'user',
+                                'content': [{'toolResult': {
+                                    'toolUseId': this_completion_raw['toolUse']['toolUseId'],
+                                    'content': [{'text': f'Error: tool execution failed ({type(e).__name__}: {e})'}],
+                                    'status': 'error'
+                                }}]
+                            })
                 if len(all_env_messages) > 0:
                     env_messages = all_env_messages[0]
                     if len(all_env_messages) > 1:
@@ -323,15 +335,24 @@ class Agent():
                                 'tool_call_id': tool_call['id'], 
                                 'tool_name': tool_call['function']['name'],
                                 'arguments': json_repair.loads(tool_call['function']['arguments'])}
-                    env_messages = self.envs[agent_idx].step(completion)
-                    all_env_messages.extend(deepcopy(env_messages))
+                    try:
+                        env_messages = self.envs[agent_idx].step(completion)
+                        all_env_messages.extend(deepcopy(env_messages))
+                    except Exception as e:
+                        logging.warning(f"Environment step failed for agent {agent_idx}: {e}")
+                        self.running[agent_idx] = False
+                        self.messages[agent_idx].append({
+                            'role': 'tool',
+                            'tool_call_id': tool_call['id'],
+                            'content': f'Error: tool execution failed ({type(e).__name__}: {e})'
+                        })
                 if len(all_env_messages) > 0:
                     env_messages = all_env_messages[0]
                     if len(all_env_messages) > 1:
                         for i in range(len(all_env_messages)-1):
                             env_messages['content'].extend(all_env_messages[i+1]['content'])
                     self.messages[agent_idx].append(env_messages)
-            
+
         elif isinstance(self.model, ray.actor.ActorHandle):
             self.model.set_sys_prompt.remote(self.sys_prompt)
             logging.info(f"\n[SYSTEM PROMPT]: {self.model.get_sys_prompt.remote()}")

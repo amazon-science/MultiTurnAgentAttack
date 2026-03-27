@@ -1,0 +1,109 @@
+# ============================================================================
+# STAC Benchmark Evaluation Configurations
+#
+# Usage:
+#   python -m STAC_eval.run_eval --config <name>
+#   python -m STAC_eval.run_eval --list-configs
+#   python -m STAC_eval.run_eval --config gpt41 gpt41_reasoning
+#
+# _global values are inherited by ALL configs. Per-config values override.
+# ============================================================================
+
+# =====================
+# Global defaults
+# =====================
+
+_global:
+  env:
+    OPENAI_API_KEY: "your-key"
+    # AWS_ACCESS_KEY_ID: "..."
+    # AWS_SECRET_ACCESS_KEY: "..."
+    # AWS_SESSION_TOKEN: "..."
+  input_path: data/STAC_benchmark_data.json
+  output_dir: data/Eval
+  model_planner: gpt-4.1
+  model_judge: gpt-4.1
+  model_agent: gpt-4.1
+  batch_size: 512
+  defense: no_defense
+  max_n_turns: 3
+  temperature: 0.0
+  top_p: 0.95
+
+# =====================
+# Single-model configs
+# =====================
+
+gpt41:
+  description: "GPT-4.1 agent, no defense"
+  model_agent: gpt-4.1
+
+gpt41_mini:
+  description: "GPT-4.1-mini agent, no defense"
+  model_agent: gpt-4.1-mini
+
+gpt41_nano:
+  description: "GPT-4.1-nano agent, no defense"
+  model_agent: gpt-4.1-nano
+
+gpt4o:
+  description: "GPT-4o agent, no defense"
+  model_agent: gpt-4o
+
+claude_sonnet:
+  description: "Claude Sonnet 4.5 agent via Bedrock, no defense"
+  model_agent: us.anthropic.claude-sonnet-4-5-v1
+  batch_size: 10
+  region: us-west-2
+
+# =====================
+# Defense sweep configs
+# =====================
+
+gpt41_all_defenses:
+  description: "GPT-4.1 across all defense strategies"
+  model_agent: gpt-4.1
+  defense: [no_defense, failure_modes, summarization, reasoning, spotlighting]
+
+gpt41_reasoning:
+  description: "GPT-4.1 with reasoning defense"
+  model_agent: gpt-4.1
+  defense: reasoning
+
+gpt41_spotlighting:
+  description: "GPT-4.1 with spotlighting defense"
+  model_agent: gpt-4.1
+  defense: spotlighting
+
+# =====================
+# Model sweep configs
+# =====================
+
+model_sweep:
+  description: "Sweep across GPT-4.1 family"
+  model_agent: [gpt-4.1, gpt-4.1-mini, gpt-4.1-nano]
+
+full_sweep:
+  description: "All models x all defenses"
+  model_agent: [gpt-4.1, gpt-4.1-mini, gpt-4.1-nano]
+  defense: [no_defense, failure_modes, summarization, reasoning, spotlighting]
+
+# =====================
+# Alternative dataset configs
+# =====================
+
+toolshield_shade:
+  description: "Evaluate ToolShield SHADE attacks with GPT-4.1"
+  input_path: data/toolshield_shade_stac.json
+  model_agent: gpt-4.1
+
+toolshield_asb:
+  description: "Evaluate ToolShield ASB attacks with GPT-4.1"
+  input_path: data/toolshield_asb_stac.json
+  model_agent: gpt-4.1
+
+toolshield_shade_all_defenses:
+  description: "ToolShield SHADE attacks across all defenses"
+  input_path: data/toolshield_shade_stac.json
+  model_agent: gpt-4.1
+  defense: [no_defense, failure_modes, summarization, reasoning, spotlighting]

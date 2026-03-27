@@ -1,0 +1,84 @@
+# ============================================================================
+# STAC Generation Pipeline Configurations
+#
+# Usage:
+#   python -m STAC_gen.run_pipeline --config <name>
+#   python -m STAC_gen.run_pipeline --config <name> --steps 1 2 3 4
+#   python -m STAC_gen.run_pipeline --list-configs
+#
+# _global values are inherited by ALL configs. Per-config values override.
+# ============================================================================
+
+# =====================
+# Global defaults
+# =====================
+
+_global:
+  env:
+    OPENAI_API_KEY: "your-key"
+    # AWS_ACCESS_KEY_ID: "..."
+    # AWS_SECRET_ACCESS_KEY: "..."
+    # AWS_SESSION_TOKEN: "..."
+  dataset: Agent_SafetyBench
+  model_generator: gpt-4.1
+  model_verifier: gpt-4.1
+  model_prompt_writer: gpt-4.1
+  model_planner: gpt-4.1
+  model_judge: gpt-4.1
+  model_agent: gpt-4.1
+  n_cases: 120
+  batch_size: 512
+  defense: no_defense
+  max_n_turns: 3
+  temperature: 0.6
+  top_p: 0.95
+  region: us-west-2
+
+# =====================
+# ASB configs
+# =====================
+
+asb_gpt41:
+  description: "STAC pipeline on Agent_SafetyBench (120 sampled cases), GPT-4.1 for all roles"
+  dataset: Agent_SafetyBench
+  n_cases: 120
+
+asb_gpt41_full:
+  description: "STAC pipeline on full Agent_SafetyBench (all 2000 cases), GPT-4.1 for all roles"
+  dataset: Agent_SafetyBench
+  n_cases: 2000
+
+asb_gpt41_mini:
+  description: "Full STAC pipeline on Agent_SafetyBench, GPT-4.1-mini as agent"
+  dataset: Agent_SafetyBench
+  model_agent: gpt-4.1-mini
+  n_cases: 120
+
+# =====================
+# SHADE configs
+# =====================
+
+shade_gpt41:
+  description: "Full STAC pipeline on SHADE_Arena, GPT-4.1 for all roles"
+  dataset: SHADE_Arena
+
+shade_gpt41_mini:
+  description: "Full STAC pipeline on SHADE_Arena, GPT-4.1-mini as agent"
+  dataset: SHADE_Arena
+  model_agent: gpt-4.1-mini
+
+# =====================
+# Quick test configs
+# =====================
+
+test_asb:
+  description: "Quick test: ASB with batch_size=2, n_cases=2"
+  dataset: Agent_SafetyBench
+  n_cases: 2
+  batch_size: 2
+
+test_shade:
+  description: "Quick test: SHADE with batch_size=2, n_cases=2"
+  dataset: SHADE_Arena
+  n_cases: 2
+  batch_size: 2

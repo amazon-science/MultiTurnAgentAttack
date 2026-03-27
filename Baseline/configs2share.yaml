@@ -1,0 +1,106 @@
+# ============================================================================
+# Baseline Pipeline Configurations
+#
+# Usage:
+#   python -m Baseline.run_baseline_pipeline --config <name>
+#   python -m Baseline.run_baseline_pipeline --list-configs
+#   python -m Baseline.run_baseline_pipeline --config shade_gpt41 shade_gpt41_reasoning
+#
+# _global values are inherited by ALL configs. Per-config values override.
+# ============================================================================
+
+# =====================
+# Global defaults
+# =====================
+# These apply to every config. Per-config values take precedence.
+# Uncomment and fill in your API keys.
+
+_global:
+  env:
+    TOOLSHIELD_MODEL_NAME: "gpt-4.1"
+    # ANTHROPIC_API_KEY: "your-key"         # for attack generation (Anthropic models)
+    # OPENROUTER_API_KEY: "your-key"        # alternative: OpenRouter (any model)
+    # AWS_ACCESS_KEY_ID: "..."              # for Bedrock agent models
+    # AWS_SECRET_ACCESS_KEY: "..."          # for Bedrock agent models
+  model_agent: gpt-4.1
+  model_judge: gpt-4.1
+  batch_size: 200
+  defense: no_defense
+
+# =====================
+# Full pipeline configs
+# =====================
+
+shade_gpt41:
+  description: "SHADE-Arena full pipeline with GPT-4.1 (no defense)"
+  steps: [generate, convert, evaluate]
+  dataset: shade
+
+shade_gpt41_all_defenses:
+  description: "SHADE-Arena: evaluate GPT-4.1 across all defense strategies"
+  steps: [generate, convert, evaluate]
+  dataset: shade
+  defense: [no_defense, failure_modes, summarization, reasoning, spotlighting]
+
+asb_gpt41:
+  description: "Agent_SafetyBench full pipeline with GPT-4.1 (no defense)"
+  steps: [generate, convert, evaluate]
+  dataset: asb
+
+both_gpt41:
+  description: "Both datasets, GPT-4.1, no defense"
+  steps: [generate, convert, evaluate]
+  dataset: both
+
+# ==========================
+# Evaluate-only configs
+# (use pre-generated data)
+# ==========================
+
+eval_shade_gpt41:
+  description: "Evaluate existing SHADE data with GPT-4.1"
+  steps: [evaluate]
+  dataset: shade
+  input_path: data/toolshield_shade_stac.json
+
+eval_shade_claude:
+  description: "Evaluate existing SHADE data with Claude Sonnet 4.5 (Bedrock)"
+  steps: [evaluate]
+  dataset: shade
+  input_path: data/STAC_benchmark_data.json
+  model_agent: us.anthropic.claude-sonnet-4-5-v1
+  region: us-west-2
+
+eval_all_defenses:
+  description: "Evaluate existing data across all defenses with GPT-4.1"
+  steps: [evaluate]
+  dataset: shade
+  input_path: data/toolshield_shade_stac.json
+  defense: [no_defense, failure_modes, summarization, reasoning, spotlighting]
+
+eval_model_sweep:
+  description: "Evaluate existing data across multiple agent models"
+  steps: [evaluate]
+  dataset: shade
+  input_path: data/STAC_benchmark_data.json
+  model_agent: [gpt-4.1, gpt-4.1-mini, gpt-4.1-nano]
+
+# ==========================
+# Generate-only configs
+# ==========================
+
+gen_shade_only:
+  description: "Generate SHADE attacks only (no eval)"
+  steps: [generate, convert]
+  dataset: shade
+
+gen_asb_only:
+  description: "Generate ASB attacks only (no eval)"
+  steps: [generate, convert]
+  dataset: asb
+
+gen_shade_banking:
+  description: "Generate attacks for SHADE banking environment only"
+  steps: [generate, convert]
+  dataset: shade
+  shade_env: banking

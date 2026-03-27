@@ -429,6 +429,26 @@ export AWS_SESSION_TOKEN="new-token"
 
 ---
 
+## Tests
+
+Run the test suite (no API keys or GPUs required):
+
+```bash
+python -m pytest tests/ -v                          # Core module tests
+python -m pytest Baseline/tests/test_baseline.py -v  # Baseline pipeline tests
+python -m pytest tests/ Baseline/tests/ -v           # All tests
+```
+
+| File | Tests | Coverage |
+|------|-------|----------|
+| `tests/test_utils.py` | 53 | `str2json`, `batchify`, `gen_tool_call_id`, `get_failure_mode`, `get_json_type_as_string`, `get_schema_from_annotation`, `convert_message_between_APIs` |
+| `tests/test_stac.py` | 25 | JSON validation for `BaseLM`, `Generator`, `Judge`, `Planner`, `PromptWriter` (boundary scores, missing fields, malformed structures) |
+| `tests/test_language_models.py` | 27 | `LM` base class, `OpenAILM.format_prompts` (spotlighting, sys prompt), `BedrockLM.format_prompts`/`convert_messages_format`, sys prompt handling |
+| `tests/test_environments.py` | 61 | `SHADEArenaEnvironment` (4 envs × 3 model types: tool config, init, step, env/tool info), `AgentSafetyBenchEnvironment` (init, step, reset) |
+| `Baseline/tests/test_baseline.py` | 30+ | `compute_metrics`, tool name resolution, STAC format conversion, config loading, YAML validation |
+
+---
+
 ## Requirements
 
 See `requirements.txt` for the full list of dependencies.

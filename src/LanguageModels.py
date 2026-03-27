@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional, Union
 import json_repair
 import openai
 import ray
-import vllm
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
@@ -449,9 +448,15 @@ class BedrockLM(LM):
 class VllmLM(LM):
     """
     Hugging Face language model implementation using Ray for distributed processing.
-    
+
     This class uses vLLM to efficiently run Hugging Face models with Ray for parallelization.
-    
+
+    Note: ``import vllm`` is intentionally lazy (inside methods, not at module top-level).
+    vllm requires CUDA/GPU, so a top-level import would make *any* import of this module
+    fail on machines without CUDA (e.g. macOS). Since other code paths in this file
+    (OpenAI, Bedrock) are used by the Baseline pipeline on CPU-only machines, the lazy
+    import ensures those paths remain functional even when vllm is not installed.
+
     Attributes:
         model_id (str): HuggingFace model identifier
         n_gpus (int): Number of GPUs to use for tensor parallelism
@@ -491,13 +496,14 @@ class VllmLM(LM):
             n_gpus = n_devices
         self.n_gpus = n_gpus
         
-    def load_model(self) -> vllm.LLM:
+    def load_model(self):
         """
         Load the Hugging Face model using vLLM.
         
         Returns:
             vllm.LLM: Loaded language model instance
         """
+        import vllm
         hf_overrides = None
         if 'qwen' in self.model_id.lower() or 'large' in self.model_id.lower() or 'magistral' in self.model_id.lower():
             max_model_len = 40960
@@ -658,13 +664,14 @@ class VllmLM(LM):
         Returns:
             List[str]: Generated responses for each prompt
         """
+        import vllm
         sampling_params = vllm.SamplingParams(
             temperature=temperature,
             top_p=top_p,
             max_tokens=max_tokens
         )
         formatted_prompts = self.format_prompts(user_prompts) if format_user_prompts else user_prompts
-        
+
         logging.info(f"\n\nROLE: {role}")
         logging.info(f"\n\n[SYSTEM PROMPT]: {self.sys_prompt}")
         logging.info(f"\n\n[USER PROMPTS]: {formatted_prompts}")
@@ -701,7 +708,7 @@ class VllmLM(LM):
             tool_configs: List = None,
             format_user_prompts: bool = True,
             return_raw_output: bool = False) -> List[str]:
-        
+        import vllm
         sampling_params = vllm.SamplingParams(
             temperature=temperature,
             top_p=top_p,

@@ -357,8 +357,7 @@ def main_agent_safetybench(args):
 
         # Initialize attack generator for this batch
         # Agent_SafetyBench uses batch API when batch_size is specified
-        batched = args.batch_size is not None
-        attack_generator = Generator(args.model_name_or_path, n_cases_per_fm=1, batched=batched)
+        attack_generator = Generator(args.model_name_or_path, n_cases_per_fm=1)
         attack_generator.reset(args.batch_size)
 
         # Prepare batch data
